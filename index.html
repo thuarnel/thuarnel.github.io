@@ -3,34 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>thuarnel</title>
-    <link href="https://fonts.googleapis.com/css2?family=Baloo+Tammudu+2&display=swap" rel="stylesheet">
+    <title>Thuarnel Resolution Madness!</title>
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; }
-        .grid-container { display: grid; gap: 10px; padding: 10px; width: 100%; height: 100%; box-sizing: border-box; }
-        .tile { background-color: #ffcc00; border: 2px solid #333; border-radius: 10px; display: flex; justify-content: center; align-items: center; font-family: 'Baloo Tammudu 2', cursive; font-size: 20px; color: #333; padding: 10px 20px; transition: transform 0.3s ease, box-shadow 0.3s ease, z-index 0.3s ease; text-align: center; width: auto; height: auto; white-space: nowrap; }
-        .tile:hover { transform: scale(1.2); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); z-index: 10; }
+        body {
+            background-color: black;
+            overflow: hidden;
+            margin: 0;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+        }
+
+        .thuarnel {
+            font-weight: bold;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            position: absolute;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
-    <div class="grid-container" id="grid-container"></div>
     <script>
-        function updateGrid() {
-            const viewportWidth = window.innerWidth, viewportHeight = window.innerHeight, tileWidth = 100;
-            const columns = Math.ceil(viewportWidth / tileWidth), rows = Math.ceil(viewportHeight / tileWidth);
-            const gridContainer = document.getElementById('grid-container');
-            gridContainer.style.gridTemplateColumns = `repeat(${columns}, minmax(${tileWidth}px, auto))`;
-            gridContainer.style.gridTemplateRows = `repeat(${rows}, auto)`;
-            gridContainer.innerHTML = '';
-            for (let i = 0; i < columns * rows; i++) {
-                const tile = document.createElement('div');
-                tile.classList.add('tile');
-                tile.textContent = 'thuarnel';
-                gridContainer.appendChild(tile);
+        const thuarnels = [];
+        const colors = ["red", "orange", "yellow", "green", "blue", "indigo", "violet"];
+        const numThuarnels = 50;
+        let screenWidth = window.innerWidth;
+        let screenHeight = window.innerHeight;
+
+        function createThuarnel() {
+            const thuarnel = document.createElement("div");
+            thuarnel.classList.add("thuarnel");
+            thuarnel.textContent = "thuarnel";
+
+            let fontSize = Math.max(screenWidth, screenHeight) * 0.05;
+            thuarnel.style.fontSize = `${fontSize}px`;
+
+            let x = Math.random() * (screenWidth - fontSize * 5);
+            let y = Math.random() * (screenHeight - fontSize);
+            thuarnel.style.left = `${x}px`;
+            thuarnel.style.top = `${y}px`;
+
+            thuarnel.style.zIndex = Math.floor(Math.random() * 100);
+            document.body.appendChild(thuarnel);
+
+            let colorIndex = Math.floor(Math.random() * colors.length);
+            let colorSpeed = Math.random() * 1000 + 500;
+            let dx = (Math.random() - 0.5) * 0.005 * screenWidth;
+            let dy = (Math.random() - 0.5) * 0.005 * screenHeight;
+
+            function changeColor() {
+                colorIndex = (colorIndex + 1) % colors.length;
+                thuarnel.style.color = colors[colorIndex];
+                thuarnel.style.textShadow = `5px 5px 10px ${colors[colorIndex]}`;
+                setTimeout(changeColor, colorSpeed);
             }
+
+            changeColor();
+
+            thuarnels.push({ element: thuarnel, dx, dy, fontSize, x, y });
         }
-        updateGrid();
-        window.addEventListener('resize', updateGrid);
+
+        function updateBounds() {
+            screenWidth = window.innerWidth;
+            screenHeight = window.innerHeight;
+            thuarnels.forEach(t => {
+                t.fontSize = Math.max(screenWidth, screenHeight) * 0.05;
+                t.element.style.fontSize = `${t.fontSize}px`;
+                t.x = Math.min(t.x, screenWidth - t.fontSize * 5);
+                t.y = Math.min(t.y, screenHeight - t.fontSize);
+            });
+        }
+
+        for (let i = numThuarnels; i--; ) createThuarnel();
+
+        function animate() {
+            thuarnels.forEach(t => {
+                t.x += t.dx;
+                t.y += t.dy;
+                if (t.x < 0 || t.x + t.fontSize * 5 > screenWidth) t.dx *= -1;
+                if (t.y < 0 || t.y + t.fontSize > screenHeight) t.dy *= -1;
+                t.element.style.left = `${t.x}px`;
+                t.element.style.top = `${t.y}px`;
+            });
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener("resize", updateBounds);
+        animate();
     </script>
 </body>
 </html>
